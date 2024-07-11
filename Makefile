@@ -6,7 +6,7 @@ BUILD_DIR := $(PROJECT_DIR)/build
 KERNEL_IMG := $(BUILD_DIR)/kernel.img
 QEMU := qemu-system-aarch64
 _QEMU := $(PROJECT_DIR)/scripts/qemu/qemu_wrapper.sh $(QEMU)
-QEMU_GDB_PORT := 1234
+QEMU_GDB_PORT := 1034
 QEMU_OPTS := -machine raspi3b -nographic -serial mon:stdio -m size=1G -kernel $(KERNEL_IMG)
 GDB := gdb-multiarch
 CHBUILD := $(PROJECT_DIR)/chbuild

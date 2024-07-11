@@ -70,6 +70,8 @@
 BEGIN_FUNC(arm64_elX_to_el1)
 	/* LAB 1 TODO 1 BEGIN */
 	/* BLANK BEGIN */
+	// 将系统寄存器 CurrentEL 的值读到 x9 通用寄存器 mrs ——> move register system
+	mrs x9, CurrentEL
 	/* BLANK END */
 	/* LAB 1 TODO 1 END */
 
@@ -89,6 +91,10 @@ BEGIN_FUNC(arm64_elX_to_el1)
 	// Set the return address and exception level.
 	/* LAB 1 TODO 2 BEGIN */
 	/* BLANK BEGIN */
+	adr x9, .Ltarget
+	msr elr_el3, x9
+	mov x9, SPSR_ELX_DAIF | SPSR_ELX_EL1H
+	msr spsr_el3, x9
 	/* BLANK END */
 	/* LAB 1 TODO 2 END */
 
