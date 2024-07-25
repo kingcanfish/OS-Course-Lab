@@ -70,7 +70,7 @@
 BEGIN_FUNC(arm64_elX_to_el1)
 	/* LAB 1 TODO 1 BEGIN */
 	/* BLANK BEGIN */
-	// 将系统寄存器 CurrentEL 的值读到 x9 通用寄存器 mrs ——> move register system
+	// 将系统寄存器 CurrentEL 的值读到 x9 通用寄存器 mrs ——> move register from system
 	mrs x9, CurrentEL
 	/* BLANK END */
 	/* LAB 1 TODO 1 END */
@@ -273,6 +273,7 @@ BEGIN_FUNC(el1_mmu_activate)
 	/* Enable MMU */
 	/* LAB 1 TODO 4 BEGIN */
 	/* BLANK BEGIN */
+	orr     x8, x8, #SCTLR_EL1_M
 	/* BLANK END */
 	/* LAB 1 TODO 4 END */
 	/* Disable alignment checking */
