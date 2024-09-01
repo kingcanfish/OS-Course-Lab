@@ -53,7 +53,25 @@ static struct page *split_chunk(struct phys_mem_pool *pool, int order,
          * a suitable free list.
          */
         /* BLANK BEGIN */
+        // 就是这个大小 所以 直接返回
+        if (chunk->order == order) {
+                return chunk;
+        }
+        chunk->order--;
+        struct page *buddy_chunk;
+        
+        buddy_chunk = get_buddy_chunk(pool, chunk);
 
+        if (buddy_chunk == NULL) {
+                return chunk;
+        }
+        buddy_chunk->order = chunk->order;
+        buddy_chunk->allocated = 0;
+
+        list_add( &buddy_chunk->node,&pool->free_lists[buddy_chunk->order].free_list);
+        pool->free_lists[buddy_chunk->order].nr_free += 1;
+        chunk = split_chunk(pool, order, chunk);
+        return chunk;
         /* BLANK END */
         /* LAB 2 TODO 1 END */
 }
@@ -68,6 +86,34 @@ static struct page *merge_chunk(struct phys_mem_pool *pool, struct page *chunk)
          * if possible.
          */
         /* BLANK BEGIN */
+        struct page *buddy_chunk;
+
+        if (chunk->order == (BUDDY_MAX_ORDER -1)) {
+                return chunk;
+        }
+        buddy_chunk = get_buddy_chunk(pool, chunk);
+
+        if (buddy_chunk == NULL) {
+                return chunk;
+        }
+
+        if (buddy_chunk->allocated == 1) {
+                return chunk;
+        }
+
+        if (buddy_chunk->order != chunk->order) {
+                return chunk;
+        }
+        list_del(&buddy_chunk->node);
+        pool->free_lists[buddy_chunk->order].nr_free -= 1;
+        
+        buddy_chunk->order += 1;
+        chunk->order += 1;
+        if (chunk > buddy_chunk) {
+                chunk = buddy_chunk;
+        }
+        // 递归合并
+        return merge_chunk(pool, chunk);
 
         /* BLANK END */
         /* LAB 2 TODO 1 END */
@@ -141,6 +187,24 @@ struct page *buddy_get_pages(struct phys_mem_pool *pool, int order)
          */
         /* BLANK BEGIN */
 
+        for (cur_order = order; cur_order < BUDDY_MAX_ORDER; cur_order++) {
+                if (list_empty(&pool->free_lists[cur_order].free_list)) {
+                        continue;
+                }
+
+                free_list = &pool->free_lists[cur_order].free_list;
+                page = list_entry(free_list->next, struct page, node);
+                break;
+        }
+        if (cur_order == BUDDY_MAX_ORDER) {
+                goto out;
+        }
+        list_del(free_list->next);
+        page = split_chunk(pool, order, page);
+        pool->free_lists[cur_order].nr_free -= 1;
+        page->allocated =1;
+        
+
         /* BLANK END */
         /* LAB 2 TODO 1 END */
 out:
@@ -161,7 +225,16 @@ void buddy_free_pages(struct phys_mem_pool *pool, struct page *page)
          * a suitable free list.
          */
         /* BLANK BEGIN */
-
+        // 标记为未申请使用
+        page->allocated = 0;
+        // 合并页面
+        page = merge_chunk(pool, page);
+        // 添加到相应order的链表中, 并把计数+1
+        // merge_chunk 已经对 page的阶进行了调整，所以在 merge_chunk 之后获取新阶
+        order = page->order;
+        free_list = &(pool->free_lists[order].free_list);
+        list_add(&page->node,free_list);
+        pool->free_lists[order].nr_free += 1;
         /* BLANK END */
         /* LAB 2 TODO 1 END */
 
